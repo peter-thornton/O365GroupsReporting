@@ -244,8 +244,12 @@ If ([string]::IsNullOrWhiteSpace($ManagedBy) -and [string]::IsNullOrEmpty($Manag
      Write-Host 'testing - value of managedby at line 244' $ManagedBy
      Write-Host $G.DisplayName "has no group owners!" -ForegroundColor Red}
   Else {
+    <#
+    10/22 - Need to re-write so that 
+    #>
     $ManagedBy = (Get-Mailbox -Identity $G.ManagedBy[0]).PrimarySmtpAddress
     <#
+    Oct 17, 2019 - commented out to run report.
      $ManagedBy = (Get-Mailbox -Identity $G.ManagedBy).p
      Write-Host 'testing - value of managedby at line 246' $ManagedBy[0]
      $TempManagedBy = $ManagedBy[0]
@@ -282,7 +286,9 @@ $Members = Get-UnifiedGroupLinks -Identity $G.Alias -LinkType Members
 
 # Loop to check SharePoint document library
    If ($G.SharePointDocumentsUrl -ne $Null) {
-      $SPOSite = (Get-SPOSite -Identity $G.SharePointDocumentsUrl.replace("/Shared Documents", ""))
+     $DocURL = $G.SharePointDocumentsUrl.replace("/Shared Documents", "")
+     Write-Host 'checking value of SPDocURL at line 289' $G.SharePointDocumentsUrl 'for site ' $G.DisplayName
+      $SPOSite = (Get-SPOSite -Identity $DocURL)
       $AuditCheck = $G.SharePointDocumentsUrl + "/*"
       $AuditRecs = 0
       $AuditRecs = (Search-UnifiedAuditLog -RecordType SharePointFileOperation -StartDate $WarningDate -EndDate $Today -ObjectId $AuditCheck -SessionCommand ReturnNextPreviewPage)
