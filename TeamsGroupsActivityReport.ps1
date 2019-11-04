@@ -185,6 +185,7 @@ $TeamsGroups = 0
 $TeamsEnabled = $False
 $ObsoleteSPOGroups = 0
 $ObsoleteEmailGroups = 0
+$SPOReconnectCounter = 0
 $Report = @()
 $ReportFile = "c:\temp\GroupsActivityReport1.html"
 $CSVFile = "c:\temp\GroupsActivityReport1.csv"
@@ -223,6 +224,13 @@ $GroupNumber = 0
 
 # Main loop
 ForEach ($G in $Groups) {
+if ($SPOReconnectCounter -eq 200){
+$O365password = Get-Content -Path 'D:\Peter\TeamsReportingScript\O365pass.txt' | ConvertTo-SecureString -Force 
+$credO365 = New-Object -typename System.Management.Automation.PSCredential -argumentlist $O365username, $O365password;
+  Connect-SPOService -Credential $credO365 -Url $SPOURL
+  $SPOReconnectCounter = 0
+}
+else{
    $GroupNumber++
    $GroupStatus = $G.DisplayName + " ["+ $GroupNumber +"/" + $Groups.Count + "]"
    Write-Progress -Activity "Checking group" -Status $GroupStatus -PercentComplete $CheckCount
@@ -363,6 +371,12 @@ If ($TeamsList.ContainsKey($G.ExternalDirectoryObjectId) -eq $True) {
           Status              = $Status}
 # And store the line in the report object
    $Report += $ReportLine     
+
+#increment SPOreconnect counter
+$SPOReconnectCounter ++
+Write-Host 'Value of SPOCounter: ' $SPOReconnectCounter
+#end SPO reconnect counter
+}
 #End of main loop
 }
 # Create the HTML report
