@@ -187,8 +187,8 @@ $ObsoleteSPOGroups = 0
 $ObsoleteEmailGroups = 0
 $SPOReconnectCounter = 0
 $Report = @()
-$ReportFile = "c:\temp\GroupsActivityReport1.html"
-$CSVFile = "c:\temp\GroupsActivityReport1.csv"
+$ReportFile = "c:\temp\TestGroupsActivityReport1.html"
+$CSVFile = "c:\temp\TestupsActivityReport1.csv"
 $htmlhead="<html>
 	   <style>
 	   BODY{font-family: Arial; font-size: 8pt;}
@@ -210,8 +210,8 @@ $htmlhead="<html>
 		
 # Get a list of all Office 365 Groups in the tenant
 Write-Host "Extracting list of Office 365 Groups for checking..."
-$Groups = Get-UnifiedGroup -ResultSize Unlimited | Sort-Object DisplayName
-#$Groups = Get-UnifiedGroup -ResultSize 100 | Sort-Object DisplayName
+#$Groups = Get-UnifiedGroup -ResultSize Unlimited | Sort-Object DisplayName
+$Groups = Get-UnifiedGroup -ResultSize 10 | Sort-Object DisplayName
 # And create a hash table of Teams
 $TeamsList = @{}
 Get-Team | ForEach { $TeamsList.Add($_.GroupId, $_.DisplayName) }
@@ -224,7 +224,7 @@ $GroupNumber = 0
 
 # Main loop
 ForEach ($G in $Groups) {
-if ($SPOReconnectCounter -eq 200){
+if ($SPOReconnectCounter -eq 200){#ADDED this because I was getting a weird error where sharepoint connection would go null after a while
 $O365password = Get-Content -Path 'D:\Peter\TeamsReportingScript\O365pass.txt' | ConvertTo-SecureString -Force 
 $credO365 = New-Object -typename System.Management.Automation.PSCredential -argumentlist $O365username, $O365password;
   Connect-SPOService -Credential $credO365 -Url $SPOURL
@@ -253,8 +253,11 @@ If ([string]::IsNullOrWhiteSpace($ManagedBy) -and [string]::IsNullOrEmpty($Manag
      Write-Host $G.DisplayName "has no group owners!" -ForegroundColor Red}
   Else {
     <#
-    10/22 - Need to re-write so that 
+    Take first user in array of members and pull up desc0 
     #>
+
+    $ManagerDesc0 = (Get-ADUser $ManagedBy[0] -Properties harvardEduADRoleAffiliateDesc0).harvardEduADRoleAffiliateDesc0
+    Write-Host "The value of desc0 is "$ManagerDesc0
     $ManagedBy = (Get-Mailbox -Identity $G.ManagedBy[0]).PrimarySmtpAddress
     <#
     Oct 17, 2019 - commented out to run report.
@@ -354,7 +357,7 @@ If ($TeamsList.ContainsKey($G.ExternalDirectoryObjectId) -eq $True) {
     $ReportLine = [PSCustomObject][Ordered]@{
           GroupName           = $G.DisplayName
           ManagedBy           = $ManagedBy
-          ManagedByDetails    = $ManagedByDetails
+          ManagedByDetails    = $ManagerDesc0
           Members             = $Members.Name -join ";"
           MemberCount         = $G.GroupMemberCount
           ExternalGuests      = $G.GroupExternalMemberCount
