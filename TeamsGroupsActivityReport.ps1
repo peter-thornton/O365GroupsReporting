@@ -224,6 +224,13 @@ $GroupNumber = 0
 
 # Main loop
 ForEach ($G in $Groups) {
+
+  #Check if shit is working
+  Test-EXO
+  Test-MSO
+  Test-SPO
+  Test-Teams
+
 if ($SPOReconnectCounter -eq 200){#ADDED this because I was getting a weird error where sharepoint connection would go null after a while
 $O365password = Get-Content -Path 'D:\Peter\TeamsReportingScript\O365pass.txt' | ConvertTo-SecureString -Force 
 $credO365 = New-Object -typename System.Management.Automation.PSCredential -argumentlist $O365username, $O365password;
